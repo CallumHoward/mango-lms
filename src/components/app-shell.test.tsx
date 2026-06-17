@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { AppShell } from "#/components/app-shell";
@@ -6,14 +6,16 @@ import { AppShell } from "#/components/app-shell";
 import { axe } from "../../vitest-setup";
 
 describe("AppShell", () => {
-  it("renders the theme toggle and its children", () => {
+  it("renders the theme toggle, locale switcher, and its children", () => {
     render(
       <AppShell theme="light">
         <main>Page content</main>
       </AppShell>,
     );
 
-    expect(screen.getAllByRole("button")).toHaveLength(3);
+    const themeToggle = screen.getByRole("group", { name: /color theme/i });
+    expect(within(themeToggle).getAllByRole("button")).toHaveLength(3);
+    expect(screen.getByRole("group", { name: /language/i })).toBeVisible();
     expect(screen.getByRole("main")).toBeVisible();
   });
 

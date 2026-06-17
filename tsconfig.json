@@ -14,6 +14,11 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
 
+    /* Read types from the JSDoc-annotated JS that Paraglide generates under
+       src/paraglide (typed message functions) without type-checking that output. */
+    "allowJs": true,
+    "checkJs": false,
+
     /* Linting */
     "skipLibCheck": true,
     "strict": true,

@@ -1,5 +1,6 @@
 import process from "node:process";
 
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
@@ -25,6 +26,16 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths: true,
     },
     plugins: [
+      // Compiles the inlang project to typed message functions under src/paraglide.
+      // URL strategy first so the per-request locale is resolved from the path
+      // (e.g. /de/...) before falling back to the cookie / Accept-Language header.
+      paraglideVitePlugin({
+        project: "./project.inlang",
+        outdir: "./src/paraglide",
+        outputStructure: "message-modules",
+        cookieName: "PARAGLIDE_LOCALE",
+        strategy: ["url", "cookie", "preferredLanguage", "baseLocale"],
+      }),
       tailwindcss(),
       ...modePlugins,
       ...analyzePlugins,
