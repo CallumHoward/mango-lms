@@ -1,0 +1,7 @@
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  unrs-resolver: true
+# Supply-chain safety: don't install any package version published less than
+# 7 days ago (value is in minutes). Gives releases time to be vetted/yanked.
+minimumReleaseAge: 10080
