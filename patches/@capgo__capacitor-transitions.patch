@@ -1,0 +1,347 @@
+diff --git a/dist/chunk-B6BVMPJ3.mjs b/dist/chunk-B6BVMPJ3.mjs
+index 629e84c1b5781753befc6e91c4bddec981efb67d..ead777a163b0e7f65458015d24c9d880f985a79f 100644
+--- a/dist/chunk-B6BVMPJ3.mjs
++++ b/dist/chunk-B6BVMPJ3.mjs
+@@ -41,7 +41,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1136,20 +1136,33 @@ var TransitionController = class {
+       }
+       return;
+     }
+-    const finished = transition.animations.map((animation, index) => {
++    const startTimes = transition.animations.map(
++      (animation) => (typeof animation.currentTime === "number" ? animation.currentTime : 0)
++    );
++    const targetTimes = transition.animations.map((animation, index) => {
+       const duration = transition.animationDurations[index] ?? transition.duration;
+-      const currentTime = typeof animation.currentTime === "number" ? animation.currentTime : 0;
+-      const targetTime = duration * targetProgress;
+-      const distance = Math.abs(targetTime - currentTime);
+-      if (distance < 1) {
+-        animation.currentTime = targetTime;
+-        return Promise.resolve();
+-      }
+-      animation.playbackRate = Math.max(distance / releaseDuration, 1e-3) * (targetTime >= currentTime ? 1 : -1);
+-      animation.play();
+-      return animation.finished.catch(() => void 0);
++      return duration * targetProgress;
++    });
++    for (const animation of transition.animations) {
++      animation.pause();
++    }
++    const easeOut = (t) => 1 - Math.pow(1 - t, 3);
++    const startTimestamp = performance.now();
++    await new Promise((resolve) => {
++      const tick = (now) => {
++        const p = Math.min((now - startTimestamp) / releaseDuration, 1);
++        const eased = easeOut(p);
++        transition.animations.forEach((animation, index) => {
++          animation.currentTime = startTimes[index] + (targetTimes[index] - startTimes[index]) * eased;
++        });
++        if (p < 1) {
++          requestAnimationFrame(tick);
++        } else {
++          resolve();
++        }
++      };
++      requestAnimationFrame(tick);
+     });
+-    await Promise.all(finished);
+     transition.progress = targetProgress;
+   }
+   /**
+@@ -1960,7 +1973,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -2033,7 +2046,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/index.js b/dist/index.js
+index a12df64c0fb891c274adb03969609f39fe447b4c..81226dbbca36db4c7a2d205279d995f76f36d6e8 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -2019,7 +2019,7 @@ var init_cap_router_outlet = __esm({
+         const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+         const missing = shouldCommit ? 1 - step : step;
+         const missingDistance = Math.max(missing, 0) * width;
+-        const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++        const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+         if (pointer.transitionStarted) {
+           this.flushQueuedSwipeGestureStep();
+         } else {
+@@ -2092,7 +2092,7 @@ var init_cap_router_outlet = __esm({
+       async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+         const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+         const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-        await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++        await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+         if (!canComplete) {
+           return;
+         }
+diff --git a/dist/react/index.js b/dist/react/index.js
+index 5505c7b6d8a1a59f725513a61f0eb2d32e58be85..7909aab7431f9cd13c21bc45fc61bd1160b90ff1 100644
+--- a/dist/react/index.js
++++ b/dist/react/index.js
+@@ -51,7 +51,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1918,7 +1918,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1991,7 +1991,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/react/index.mjs b/dist/react/index.mjs
+index 1f74d539365581a85f98e2c73733e84d2089acae..bbac2e9ee46acbf75df1486735d08d2d7b39995b 100644
+--- a/dist/react/index.mjs
++++ b/dist/react/index.mjs
+@@ -17,7 +17,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1884,7 +1884,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1957,7 +1957,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/solid/index.js b/dist/solid/index.js
+index 5eba298fa285ec4301015c65915239992aed9aae..f3fe508c5a49e51cf0597f49eaa1228a28b9cafa 100644
+--- a/dist/solid/index.js
++++ b/dist/solid/index.js
+@@ -51,7 +51,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1918,7 +1918,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1991,7 +1991,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/solid/index.mjs b/dist/solid/index.mjs
+index c8bda8fc4fa637e20abf22af61a46fecdd8f6fee..58d9f0fba5771200a03bf25524a7593fcc5e49fa 100644
+--- a/dist/solid/index.mjs
++++ b/dist/solid/index.mjs
+@@ -17,7 +17,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1884,7 +1884,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1957,7 +1957,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/svelte/index.js b/dist/svelte/index.js
+index 5483124fbe2a42ca133f7e5dd7e9035c3a3fb1d5..abcef82b16873e1c6188a026c17f8d120229a3e5 100644
+--- a/dist/svelte/index.js
++++ b/dist/svelte/index.js
+@@ -52,7 +52,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1919,7 +1919,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1992,7 +1992,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/svelte/index.mjs b/dist/svelte/index.mjs
+index 9ce0ca24c9481c608c6a52e7fc4dcebdb41ae0af..b932fb7a15613b1df437d91d8fa6484a50875e7a 100644
+--- a/dist/svelte/index.mjs
++++ b/dist/svelte/index.mjs
+@@ -17,7 +17,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1884,7 +1884,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1957,7 +1957,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/vue/index.js b/dist/vue/index.js
+index 34197b4a3e9c6f8b8a16dfc46f2efb86ddbf143a..bc65687f587dfe838de6d8364b145d8d661e57f8 100644
+--- a/dist/vue/index.js
++++ b/dist/vue/index.js
+@@ -51,7 +51,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1918,7 +1918,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1991,7 +1991,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }
+diff --git a/dist/vue/index.mjs b/dist/vue/index.mjs
+index deac09dac108ed3f719379a32f54d6d6db03f971..0ab8b45a08a77296ffdca9a1eae7dd0188071a9c 100644
+--- a/dist/vue/index.mjs
++++ b/dist/vue/index.mjs
+@@ -17,7 +17,7 @@ function setOutletNavigationIntent(outlet, action, direction = getDefaultNavigat
+ var IOS_EASING = "cubic-bezier(0.32, 0.72, 0, 1)";
+ var ANDROID_EASING = "cubic-bezier(0.36, 0.66, 0.04, 1)";
+ var ANDROID_BACK_EASING = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+-var IOS_DURATION = 540;
++var IOS_DURATION = 330;
+ var ANDROID_DURATION = 280;
+ var ANDROID_BACK_DURATION = 200;
+ var IOS_OFF_OPACITY = 0.8;
+@@ -1884,7 +1884,7 @@ var CapRouterOutlet = class extends HTMLElement {
+     const shouldCommit = pointer.dragging && pointer.transitionStarted && velocityX >= 0 && (velocityX > this.swipeGestureMinimumVelocity || deltaX > width / 2);
+     const missing = shouldCommit ? 1 - step : step;
+     const missingDistance = Math.max(missing, 0) * width;
+-    const releaseDuration = missingDistance > 5 && Math.abs(velocityX) > 0 ? Math.min(missingDistance / Math.abs(velocityX), 540) : 0;
++    const releaseDuration = missingDistance > 5 ? Math.max(missing * 280, 90) : 0;
+     if (pointer.transitionStarted) {
+       this.flushQueuedSwipeGestureStep();
+     } else {
+@@ -1957,7 +1957,7 @@ var CapRouterOutlet = class extends HTMLElement {
+   async finishSwipeGestureBack(shouldComplete, releaseDuration) {
+     const canComplete = shouldComplete && this.getSwipeBackDestination() !== null;
+     const shouldUseHistory = canComplete && typeof window !== "undefined" && window.history.length > 1;
+-    await this.controller.endInteractiveBack(canComplete, canComplete ? releaseDuration : 0, !shouldUseHistory);
++    await this.controller.endInteractiveBack(canComplete, Math.max(releaseDuration, 90), !shouldUseHistory);
+     if (!canComplete) {
+       return;
+     }

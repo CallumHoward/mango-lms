@@ -1,0 +1,296 @@
+/* stylelint-disable-next-line import-notation -- Tailwind v4 requires the bare-string import */
+@import "tailwindcss";
+
+body {
+  @apply m-0;
+
+  /* Keep content clear of the notch/home indicator and native bars. Take the
+     larger of the native-navigation plugin's content inset (set to 0 on edges
+     without a native bar) and the raw device safe area. */
+  padding: max(var(--cap-native-navigation-top, 0px), env(safe-area-inset-top))
+    max(var(--cap-native-navigation-right, 0px), env(safe-area-inset-right))
+    max(var(--cap-native-navigation-bottom, 0px), env(safe-area-inset-bottom))
+    max(var(--cap-native-navigation-left, 0px), env(safe-area-inset-left));
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+/* Page-stack transition outlet fills the routed area so pages can slide. */
+cap-router-outlet {
+  position: relative;
+  display: block;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+cap-page,
+cap-content {
+  display: block;
+}
+
+.page {
+  width: 100%;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+/* Frosted-glass bottom nav approximating iOS's material on the web. */
+.web-tabbar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: calc(64px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: color-mix(in oklch, var(--background) 70%, transparent);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Web fallback tab bar: reserve space for the fixed bar. On native the plugin
+   owns the bottom inset and the bar is hidden, so only apply this on the web. */
+html:not(.is-native) body {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+html.is-native .web-tabbar {
+  display: none;
+}
+
+.web-tabbar-item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.web-tabbar-item[aria-current="page"] {
+  color: var(--primary);
+}
+
+.web-tabbar-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentcolor;
+}
+
+/* Notes list (iOS-Notes-style rows) */
+.notes-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.75rem 0;
+  color: var(--foreground);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.note-row-title {
+  font-weight: 600;
+}
+
+.note-row-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.note-row-date {
+  flex-shrink: 0;
+}
+
+.note-row-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Note detail */
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-size: 1rem;
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  appearance: none;
+}
+
+.note-detail-date {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.note-detail-body {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* On native the navbar supplies each page's title and the back button, so drop
+   their in-page web equivalents to avoid duplication. */
+html.is-native .back-link,
+html.is-native .page h1 {
+  display: none;
+}
+
+/* ========================================
+   CONFIGURATION
+   ======================================== */
+
+:root {
+  /* Animation timing */
+  --vt-duration: 500ms;
+  --vt-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --vt-animation: var(--vt-duration) var(--vt-easing) both;
+
+  /* Z-index stacking order */
+  --z-nav: 1000;
+  --z-pages: 2;
+  --z-home: 1;
+  --radius: 0.625rem;
+  --background: oklch(100% 0 0deg);
+  --foreground: oklch(12.9% 0.042 264.695deg);
+  --card: oklch(100% 0 0deg);
+  --card-foreground: oklch(12.9% 0.042 264.695deg);
+  --popover: oklch(100% 0 0deg);
+  --popover-foreground: oklch(12.9% 0.042 264.695deg);
+  --primary: oklch(20.8% 0.042 265.755deg);
+  --primary-foreground: oklch(98.4% 0.003 247.858deg);
+  --secondary: oklch(96.8% 0.007 247.896deg);
+  --secondary-foreground: oklch(20.8% 0.042 265.755deg);
+  --muted: oklch(96.8% 0.007 247.896deg);
+  --muted-foreground: oklch(55.4% 0.046 257.417deg);
+  --accent: oklch(96.8% 0.007 247.896deg);
+  --accent-foreground: oklch(20.8% 0.042 265.755deg);
+  --destructive: oklch(57.7% 0.245 27.325deg);
+  --border: oklch(92.9% 0.013 255.508deg);
+  --input: oklch(92.9% 0.013 255.508deg);
+  --ring: oklch(70.4% 0.04 256.788deg);
+  --chart-1: oklch(64.6% 0.222 41.116deg);
+  --chart-2: oklch(60% 0.118 184.704deg);
+  --chart-3: oklch(39.8% 0.07 227.392deg);
+  --chart-4: oklch(82.8% 0.189 84.429deg);
+  --chart-5: oklch(76.9% 0.188 70.08deg);
+  --sidebar: oklch(98.4% 0.003 247.858deg);
+  --sidebar-foreground: oklch(12.9% 0.042 264.695deg);
+  --sidebar-primary: oklch(20.8% 0.042 265.755deg);
+  --sidebar-primary-foreground: oklch(98.4% 0.003 247.858deg);
+  --sidebar-accent: oklch(96.8% 0.007 247.896deg);
+  --sidebar-accent-foreground: oklch(20.8% 0.042 265.755deg);
+  --sidebar-border: oklch(92.9% 0.013 255.508deg);
+  --sidebar-ring: oklch(70.4% 0.04 256.788deg);
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+.dark {
+  --background: oklch(12.9% 0.042 264.695deg);
+  --foreground: oklch(98.4% 0.003 247.858deg);
+  --card: oklch(20.8% 0.042 265.755deg);
+  --card-foreground: oklch(98.4% 0.003 247.858deg);
+  --popover: oklch(20.8% 0.042 265.755deg);
+  --popover-foreground: oklch(98.4% 0.003 247.858deg);
+  --primary: oklch(92.9% 0.013 255.508deg);
+  --primary-foreground: oklch(20.8% 0.042 265.755deg);
+  --secondary: oklch(27.9% 0.041 260.031deg);
+  --secondary-foreground: oklch(98.4% 0.003 247.858deg);
+  --muted: oklch(27.9% 0.041 260.031deg);
+  --muted-foreground: oklch(70.4% 0.04 256.788deg);
+  --accent: oklch(27.9% 0.041 260.031deg);
+  --accent-foreground: oklch(98.4% 0.003 247.858deg);
+  --destructive: oklch(70.4% 0.191 22.216deg);
+  --border: oklch(100% 0 0deg / 10%);
+  --input: oklch(100% 0 0deg / 15%);
+  --ring: oklch(55.1% 0.027 264.364deg);
+  --chart-1: oklch(48.8% 0.243 264.376deg);
+  --chart-2: oklch(69.6% 0.17 162.48deg);
+  --chart-3: oklch(76.9% 0.188 70.08deg);
+  --chart-4: oklch(62.7% 0.265 303.9deg);
+  --chart-5: oklch(64.5% 0.246 16.439deg);
+  --sidebar: oklch(20.8% 0.042 265.755deg);
+  --sidebar-foreground: oklch(98.4% 0.003 247.858deg);
+  --sidebar-primary: oklch(48.8% 0.243 264.376deg);
+  --sidebar-primary-foreground: oklch(98.4% 0.003 247.858deg);
+  --sidebar-accent: oklch(27.9% 0.041 260.031deg);
+  --sidebar-accent-foreground: oklch(98.4% 0.003 247.858deg);
+  --sidebar-border: oklch(100% 0 0deg / 10%);
+  --sidebar-ring: oklch(55.1% 0.027 264.364deg);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
