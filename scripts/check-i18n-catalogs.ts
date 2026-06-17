@@ -37,6 +37,12 @@ function catalogPath(locale: string): string {
   return path.resolve(projectRoot, pathPattern.replace("{locale}", locale));
 }
 
+// The configured (relative) catalog path, so failure messages point at the real
+// file even if `pathPattern` is customized in settings.json.
+function catalogLabel(locale: string): string {
+  return pathPattern.replace("{locale}", locale);
+}
+
 const baseKeys = messageKeys(catalogPath(settings.baseLocale));
 const problems: string[] = [];
 
@@ -48,11 +54,11 @@ for (const locale of settings.locales) {
   const extra = [...keys].filter((key) => !baseKeys.has(key));
 
   if (missing.length > 0) {
-    problems.push(`messages/${locale}.json is missing keys: ${missing.join(", ")}`);
+    problems.push(`${catalogLabel(locale)} is missing keys: ${missing.join(", ")}`);
   }
   if (extra.length > 0) {
     problems.push(
-      `messages/${locale}.json has unknown keys (not in base "${settings.baseLocale}"): ${extra.join(", ")}`,
+      `${catalogLabel(locale)} has unknown keys (not in base "${settings.baseLocale}"): ${extra.join(", ")}`,
     );
   }
 }
