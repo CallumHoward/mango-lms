@@ -4,12 +4,16 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 /**
- * Catalog-completeness gate. inlang's built-in message-lint rules (e.g. missing-translation) were
- * removed in the SDK v2 / lix rewrite and a replacement is still pending
- * (https://github.com/opral/lix/issues/239), so this version-proof script diffs the key set of
- * every non-base locale against the base locale and fails CI when they drift (a key missing from —
- * or unexpectedly extra in — a translation file). Revisit once that lands. Run via `pnpm
- * i18n:check`.
+ * Catalog gate for the inlang message catalogs. inlang's built-in message-lint rules
+ * (missing-translation, valid-js-identifier, …) were removed in the SDK v2 / lix rewrite and a
+ * replacement is still pending (https://github.com/opral/lix/issues/239), and oxlint lints JS/TS
+ * rather than JSON, so this version-proof script validates the catalogs directly. It enforces:
+ *
+ * 1. Completeness — every non-base locale defines exactly the base locale's keys.
+ * 2. Key shape — keys are flat snake_case (Paraglide's idiomatic style; see
+ *    https://github.com/opral/paraglide-js/blob/main/docs/message-keys.md).
+ *
+ * Revisit once lix validation rules land. Run via `pnpm i18n:check`.
  */
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -45,8 +49,36 @@ function catalogLabel(locale: string): string {
   return pathPattern.replace("{locale}", locale);
 }
 
-const baseKeys = messageKeys(catalogPath(settings.baseLocale));
+// Flat snake_case: lowercase word segments joined by single underscores, starting
+// with a letter. Rejects camelCase, kebab-case, dotted keys (`a.b` compiles to
+// clunky `m["a.b"]()` bracket access), and anything that isn't a valid JS
+// identifier for `m.key()`.
+const KEY_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+
 const problems: string[] = [];
+
+// Key-shape check, run on every locale (the base defines the source of truth).
+// Note: this also rejects non-string values, i.e. keeps catalogs flat. If/when
+// plurals or variants are adopted (inlang's matcher object form), relax the
+// `typeof value` check to allow that specific shape.
+for (const locale of settings.locales) {
+  const label = catalogLabel(locale);
+  for (const [key, value] of Object.entries(readJson(catalogPath(locale)))) {
+    if (key === "$schema") continue;
+    if (!KEY_PATTERN.test(key)) {
+      problems.push(
+        `${label} key "${key}" is not flat snake_case (lowercase words joined by single underscores; no periods, camelCase, or hyphens)`,
+      );
+    }
+    if (typeof value !== "string") {
+      problems.push(
+        `${label} key "${key}" must map to a string — nested objects / namespaces aren't allowed (keep catalogs flat)`,
+      );
+    }
+  }
+}
+
+const baseKeys = messageKeys(catalogPath(settings.baseLocale));
 
 for (const locale of settings.locales) {
   if (locale === settings.baseLocale) continue;
@@ -72,5 +104,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  `i18n catalog check passed: all locales match the base locale "${settings.baseLocale}" (${baseKeys.size} keys).`,
+  `i18n catalog check passed: ${baseKeys.size} flat snake_case keys, consistent across all locales (base "${settings.baseLocale}").`,
 );
