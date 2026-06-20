@@ -18,6 +18,10 @@ export default defineConfig({
     { name: "router", specifier: "@tanstack/eslint-plugin-router" },
     { name: "check-file", specifier: "eslint-plugin-check-file" },
     "eslint-plugin-testing-library",
+    {
+      name: "no-effect",
+      specifier: "eslint-plugin-react-you-might-not-need-an-effect",
+    },
   ],
   categories: {
     correctness: "error",
@@ -108,6 +112,17 @@ export default defineConfig({
     "react-hooks-js/unsupported-syntax": "warn",
     "react-hooks-js/config": "error",
     "react-hooks-js/gating": "error",
+
+    // "You Might Not Need an Effect" rules (heuristic; start as warnings).
+    // no-derived-state is omitted: it overlaps react-hooks-js/no-deriving-state-in-effects.
+    "no-effect/no-chain-state-updates": "warn",
+    "no-effect/no-event-handler": "warn",
+    "no-effect/no-adjust-state-on-prop-change": "warn",
+    "no-effect/no-reset-all-state-on-prop-change": "warn",
+    "no-effect/no-pass-live-state-to-parent": "warn",
+    "no-effect/no-pass-data-to-parent": "warn",
+    "no-effect/no-external-store-subscription": "warn",
+    "no-effect/no-initialize-state": "warn",
   },
   overrides: [
     {
