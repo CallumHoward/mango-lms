@@ -4,9 +4,11 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 /**
- * Catalog-completeness gate. inlang's built-in lint rules are mid-rework, so this version-proof
- * script diffs the key set of every non-base locale against the base locale and fails CI when they
- * drift (a key missing from — or unexpectedly extra in — a translation file). Run via `pnpm
+ * Catalog-completeness gate. inlang's built-in message-lint rules (e.g. missing-translation) were
+ * removed in the SDK v2 / lix rewrite and a replacement is still pending
+ * (https://github.com/opral/lix/issues/239), so this version-proof script diffs the key set of
+ * every non-base locale against the base locale and fails CI when they drift (a key missing from —
+ * or unexpectedly extra in — a translation file). Revisit once that lands. Run via `pnpm
  * i18n:check`.
  */
 
