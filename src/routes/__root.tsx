@@ -5,6 +5,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { AppShell } from "#/components/app-shell";
 import { NotFound } from "#/components/not-found";
 import { getThemeServerFn } from "#/lib/theme";
+import { getLocale } from "#/paraglide/runtime";
 
 import appCss from "../styles.css?url";
 
@@ -47,7 +48,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const theme = Route.useLoaderData();
 
   return (
-    <html lang="en" className={theme}>
+    <html lang={getLocale()} className={theme}>
       <head>
         <HeadContent />
       </head>

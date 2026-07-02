@@ -1,5 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-  "ignoreDependencies": ["babel-plugin-react-compiler"],
+  "ignoreDependencies": [
+    "babel-plugin-react-compiler",
+    "@inlang/plugin-message-format",
+    "@inlang/plugin-m-function-matcher",
+    "eslint-plugin-i18next"
+  ],
   "dynamicallyLoaded": ["vitest-setup.ts"]
 }

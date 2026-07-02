@@ -13,14 +13,16 @@
     "test": "vitest run --passWithNoTests",
     "test:cov": "vitest run --coverage --passWithNoTests",
     "test:e2e": "playwright test",
-    "lint": "oxlint --type-aware",
-    "lint:ci": "oxlint --type-aware --format=github",
+    "lint": "oxlint --type-aware && oxlint -c oxlint-i18n.config.ts",
+    "lint:ci": "oxlint --type-aware --format=github && oxlint -c oxlint-i18n.config.ts --format=github",
     "lint:css": "stylelint \"**/*.css\"",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "check": "tsgo --noEmit",
     "fallow": "fallow --fail-on-issues",
-    "postinstall": "lefthook install"
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy url cookie preferredLanguage baseLocale",
+    "i18n:check": "node scripts/check-i18n-catalogs.ts",
+    "postinstall": "pnpm run i18n:compile && lefthook install"
   },
   "dependencies": {
     "@tanstack/react-devtools": "^0.10.5",
@@ -34,6 +36,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
+    "@inlang/paraglide-js": "^2.18.2",
+    "@inlang/plugin-m-function-matcher": "^2.2.6",
+    "@inlang/plugin-message-format": "^4.4.0",
     "@playwright/test": "^1.60.0",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/vite": "^4.3.0",
@@ -52,6 +57,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint-plugin-check-file": "^3.3.1",
+    "eslint-plugin-i18next": "^6.1.4",
     "eslint-plugin-playwright": "^2.10.4",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-testing-library": "^7.16.2",

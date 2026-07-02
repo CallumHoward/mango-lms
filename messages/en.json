@@ -1,0 +1,10 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "hello_world": "Hello world",
+  "page_not_found": "Page not found",
+  "theme_aria_label": "Color theme",
+  "theme_light": "Light",
+  "theme_dark": "Dark",
+  "theme_system": "System",
+  "locale_switcher_aria_label": "Language"
+}
