@@ -3,8 +3,7 @@ import { getLocale, locales, setLocale } from "#/paraglide/runtime.js";
 
 /**
  * Lets the user switch the active locale. Each button calls Paraglide's `setLocale`, which persists
- * the choice (cookie) and navigates to the localized URL so the whole document re-renders in the
- * new language.
+ * the choice (cookie) and navigates to the localized URL so the whole document re-renders.
  */
 export function LocaleSwitcher() {
   const active = getLocale();

@@ -30,17 +30,13 @@ export default defineConfig({
   ],
   rules: {
     // "jsx-only" checks JSX text *and* the user-facing attributes listed below
-    // (greenfield repo — no legacy strings to ratchet around). "all" is the next
-    // step up but flags every string literal (class names, route paths, data-*),
-    // which isn't UI-translation linting, so it's intentionally not used. The
-    // attribute allowlist keeps non-text attributes (className, type, ...) out of
-    // scope. Paraglide's `m.*` (and a generic `t`) count as valid i18n calls, and
-    // purely non-alphabetic text (e.g. the "404" status code) is allowed.
     "i18next/no-literal-string": [
       "error",
       {
         mode: "jsx-only",
-        "jsx-attributes": { include: ["alt", "title", "placeholder", "aria-label"] },
+        "jsx-attributes": {
+          include: ["alt", "title", "placeholder", "aria-label"],
+        },
         callees: { exclude: ["m", "t"] },
         words: { exclude: ["^[^A-Za-z]+$"] },
       },

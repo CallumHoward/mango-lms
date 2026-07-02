@@ -5,7 +5,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { AppShell } from "#/components/app-shell";
 import { NotFound } from "#/components/not-found";
 import { getThemeServerFn } from "#/lib/theme";
-import { getLocale } from "#/paraglide/runtime.js";
+import { getLocale } from "#/paraglide/runtime";
 
 import appCss from "../styles.css?url";
 
