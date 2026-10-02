@@ -1,10 +1,9 @@
 import process from "node:process";
 
-import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
+import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 import { configDefaults, defineConfig } from "vitest/config";
@@ -24,15 +23,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       tsconfigPaths: true,
     },
-    plugins: [
-      tailwindcss(),
-      ...modePlugins,
-      ...analyzePlugins,
-      viteReact(),
-      babel({
-        presets: [reactCompilerPreset()],
-      }),
-    ],
+    plugins: [tailwindcss(), ...modePlugins, ...analyzePlugins, viteReact({ compiler: true })],
     test: {
       environment: "jsdom",
       // In CI, also emit GitHub Actions annotations for failing tests.
