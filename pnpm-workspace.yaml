@@ -2,6 +2,15 @@ allowBuilds:
   esbuild: true
   lefthook: true
   unrs-resolver: true
-# Supply-chain safety: don't install any package version published less than
-# 7 days ago (value is in minutes). Gives releases time to be vetted/yanked.
+# Ignore versions published < 7 days ago, giving time to vet/yank releases.
 minimumReleaseAge: 10080
+# Fail resolution rather than fall back to a version inside the cooldown.
+minimumReleaseAgeStrict: true
+# Block versions with weaker trust attestation than prior releases.
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - semver@6.3.1 # legacy transitive dep predating npm provenance; false positive
+# Forbid transitive deps from resolving via git/tarball URLs (registry only).
+blockExoticSubdeps: true
+# Pick one version per dependency when a single version satisfies every range.
+autoDedupe: true
