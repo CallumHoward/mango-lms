@@ -53,6 +53,16 @@ jobs:
           # Targeted replace so the rest of package.json formatting is untouched.
           sed -i "s/\"packageManager\": \"pnpm@${CURRENT}\"/\"packageManager\": \"pnpm@${LATEST}\"/" package.json
 
+      # pnpm 12 records the pinned pnpm version in pnpm-lock.yaml, so bumping only
+      # package.json breaks `pnpm install --frozen-lockfile`. Install the current pnpm
+      # (it self-switches to the new pinned version) and regenerate the lockfile.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: steps.versions.outputs.changed == 'true'
+
+      - name: Regenerate lockfile
+        if: steps.versions.outputs.changed == 'true'
+        run: pnpm install --lockfile-only
+
       # An App token (unlike GITHUB_TOKEN) lets the PR trigger the CI workflow.
       - name: Generate App token
         if: steps.versions.outputs.changed == 'true'
