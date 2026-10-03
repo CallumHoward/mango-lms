@@ -57,7 +57,7 @@
     "lefthook": "^2.1.14",
     "nitro": "latest",
     "oxc-transform-react": "~0.145.0",
-    "oxfmt": "^0.68.0",
+    "oxfmt": "^0.70.0",
     "oxlint": "^1.83.0",
     "oxlint-tsgolint": "^7.0.2002",
     "rollup-plugin-visualizer": "^7.1.1",
