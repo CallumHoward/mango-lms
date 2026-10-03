@@ -18,6 +18,10 @@ export default defineConfig({
     { name: "router", specifier: "@tanstack/eslint-plugin-router" },
     { name: "check-file", specifier: "eslint-plugin-check-file" },
     "eslint-plugin-testing-library",
+    {
+      name: "no-effect",
+      specifier: "eslint-plugin-react-you-might-not-need-an-effect",
+    },
   ],
   categories: {
     correctness: "error",
@@ -87,34 +91,45 @@ export default defineConfig({
     "jsdoc/empty-tags": "error",
     "jsdoc/implements-on-classes": "error",
 
-    // Native oxlint implementation: the JS-plugin variant (react-hooks-js/hooks)
-    // does not catch conditional/looped hook calls, so use the native rule.
-    "react-hooks/rules-of-hooks": "error",
-
-    "react-hooks-js/hooks": "error",
-    "react-hooks-js/capitalized-calls": "error",
-    "react-hooks-js/component-hook-factories": "error",
-    "react-hooks-js/no-deriving-state-in-effects": "error",
-    "react-hooks-js/memo-dependencies": "error",
+    // React Compiler rules: native oxlint ports, with the JS plugin only for rules not yet ported.
+    // Overlap on most violations, but only rules-of-hooks flags non-component callers and
+    // only hooks flags first-class hook usage.
+    "react/rules-of-hooks": "error",
+    "react/hooks": "error",
+    "react/capitalized-calls": "error",
+    "react/no-deriving-state-in-effects": "error",
+    "react/memo-dependencies": "error",
     // Newer/noisier effect-dependency rules: start as warnings.
+    "react/exhaustive-effect-dependencies": "warn",
     "react-hooks-js/memoized-effect-dependencies": "warn",
-    "react-hooks-js/exhaustive-effect-dependencies": "warn",
 
-    "react-hooks-js/static-components": "error",
-    "react-hooks-js/use-memo": "error",
-    "react-hooks-js/void-use-memo": "error",
-    "react-hooks-js/preserve-manual-memoization": "error",
-    "react-hooks-js/incompatible-library": "warn",
-    "react-hooks-js/immutability": "error",
-    "react-hooks-js/globals": "error",
-    "react-hooks-js/refs": "error",
-    "react-hooks-js/set-state-in-effect": "error",
-    "react-hooks-js/error-boundaries": "error",
-    "react-hooks-js/purity": "error",
-    "react-hooks-js/set-state-in-render": "error",
-    "react-hooks-js/unsupported-syntax": "warn",
+    "react/static-components": "error",
+    "react/use-memo": "error",
+    "react/void-use-memo": "error",
+    "react/preserve-manual-memoization": "error",
+    "react/incompatible-library": "warn",
+    "react/immutability": "error",
+    "react/globals": "error",
+    "react/refs": "error",
+    "react/set-state-in-effect": "error",
+    "react/error-boundaries": "error",
+    "react/purity": "error",
+    "react/set-state-in-render": "error",
+    "react/unsupported-syntax": "warn",
+    "react-hooks-js/component-hook-factories": "error",
     "react-hooks-js/config": "error",
     "react-hooks-js/gating": "error",
+
+    // "You Might Not Need an Effect" rules (heuristic; start as warnings).
+    // no-derived-state is omitted: it overlaps react/no-deriving-state-in-effects.
+    "no-effect/no-chain-state-updates": "warn",
+    "no-effect/no-event-handler": "warn",
+    "no-effect/no-adjust-state-on-prop-change": "warn",
+    "no-effect/no-reset-all-state-on-prop-change": "warn",
+    "no-effect/no-pass-live-state-to-parent": "warn",
+    "no-effect/no-pass-data-to-parent": "warn",
+    "no-effect/no-external-store-subscription": "warn",
+    "no-effect/no-initialize-state": "warn",
   },
   overrides: [
     {

@@ -12,16 +12,42 @@ updates:
         patterns: ["@tanstack/*"]
       react:
         patterns: ["react", "react-dom"]
+      # Spans dependencies and devDependencies; the Vite plugin must match the direct package.
+      tailwind:
+        patterns: ["tailwindcss", "@tailwindcss/*"]
       oxc:
         patterns: ["oxlint*", "oxfmt", "eslint-plugin-playwright"]
       types:
         patterns: ["@types/*"]
+      # plugin-react pins oxc-transform-react's minor via its peer range.
+      react-compiler:
+        patterns: ["@vitejs/plugin-react", "oxc-transform-react"]
+      # `typescript` aliases @typescript/typescript6 (API for tooling); @typescript/native is TS 7.
+      typescript:
+        patterns: ["typescript", "@typescript/*"]
+      vitest:
+        patterns: ["vitest", "@vitest/*"]
+      # Groups match in order, so this only catches dev deps not grouped above.
+      dev-minor-patch:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "nitro" # intentionally tracks the v3 beta "latest"
-      # @typescript/native-preview (tsgo) ships daily dev builds; bump it by
-      # hand rather than churning a PR every release.
-      - dependency-name: "@typescript/native-preview"
+      # 0.x minors are breaking; bump alongside @vitejs/plugin-react when its peer range moves.
+      - dependency-name: "oxc-transform-react"
+        update-types: ["version-update:semver-minor"]
+      # Stops a non-dealiased bump from replacing the TS 6 API alias with TS 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
       # Keep @types/node on the major matching the Node runtime (.nvmrc);
       # bump it by hand when moving to the next Node LTS.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions" # bumps SHA-pinned actions, keeps # vX comment
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7 # min-release-age equivalent for GHA: wait out same-day yanks
+    open-pull-requests-limit: 10

@@ -5,21 +5,26 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: this workflow only reads the repo.
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history so diff-cover can find the merge-base with the PR base branch.
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
 
       # Reads the pnpm version from the "packageManager" field in package.json.
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       # Manual cache (instead of setup-node's built-in cache: pnpm) so we can
       # use restore-keys for warm/partial restores when the lockfile changes.
@@ -27,7 +32,7 @@ jobs:
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
@@ -36,6 +41,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # pnpm only warns on unmet peers; fail so Dependabot can't bump past a peer range.
+      - name: Peer dependencies
+        run: pnpm peers check
+
+      # Fail if the lockfile has avoidable duplicate resolutions (fix with `pnpm dedupe`).
+      - name: Dedupe
+        run: pnpm dedupe --check
 
       - name: Typecheck
         run: pnpm check
@@ -65,7 +78,7 @@ jobs:
       # the git diff against the base branch (no baseline or second run needed).
       - name: Diff coverage
         run: |
-          pipx run diff-cover coverage/lcov.info \
+          pipx run diff-cover==10.5.1 coverage/lcov.info \
             --compare-branch origin/${{ github.base_ref || 'main' }} \
             --fail-under 80
 
@@ -73,7 +86,7 @@ jobs:
         run: pnpm build
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
@@ -81,14 +94,14 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
 
       # CI runs against the production preview (pnpm serve), reusing the build
       # from the step above rather than rebuilding.
       - name: E2E
         run: pnpm test:e2e
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ failure() }}
         with:
           name: playwright-report
