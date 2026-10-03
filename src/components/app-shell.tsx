@@ -1,3 +1,4 @@
+import { LocaleSwitcher } from "#/components/locale-switcher";
 import { ThemeProvider } from "#/components/theme/theme-provider";
 import { ThemeToggle } from "#/components/theme/theme-toggle";
 import type { Theme } from "#/lib/theme";
@@ -10,7 +11,8 @@ import type { Theme } from "#/lib/theme";
 export function AppShell({ theme, children }: { theme: Theme; children: React.ReactNode }) {
   return (
     <ThemeProvider initialTheme={theme}>
-      <header className="flex w-full justify-end p-4">
+      <header className="flex w-full justify-end gap-2 p-4">
+        <LocaleSwitcher />
         <ThemeToggle />
       </header>
       {children}

@@ -1,5 +1,6 @@
 import process from "node:process";
 
+import { paraglideVitePlugin } from "@inlang/paraglide-js";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -23,7 +24,22 @@ export default defineConfig(({ mode }) => {
     resolve: {
       tsconfigPaths: true,
     },
-    plugins: [tailwindcss(), ...modePlugins, ...analyzePlugins, viteReact({ compiler: true })],
+    plugins: [
+      // Compiles the inlang project to typed message functions under src/paraglide.
+      // URL strategy first so the per-request locale is resolved from the path
+      // (e.g. /de/...) before falling back to the cookie / Accept-Language header.
+      paraglideVitePlugin({
+        project: "./project.inlang",
+        outdir: "./src/paraglide",
+        outputStructure: "message-modules",
+        cookieName: "PARAGLIDE_LOCALE",
+        strategy: ["url", "cookie", "preferredLanguage", "baseLocale"],
+      }),
+      tailwindcss(),
+      ...modePlugins,
+      ...analyzePlugins,
+      viteReact({ compiler: true }),
+    ],
     test: {
       environment: "jsdom",
       // In CI, also emit GitHub Actions annotations for failing tests.

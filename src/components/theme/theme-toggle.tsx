@@ -2,11 +2,12 @@ import type { FormEvent } from "react";
 
 import { useTheme } from "#/components/theme/theme-context";
 import { isTheme, setThemeServerFn, THEMES, type Theme } from "#/lib/theme";
+import { m } from "#/paraglide/messages.js";
 
-const LABELS: Record<Theme, string> = {
-  light: "Light",
-  dark: "Dark",
-  system: "System",
+const LABELS: Record<Theme, () => string> = {
+  light: m.theme_light,
+  dark: m.theme_dark,
+  system: m.theme_system,
 };
 
 export function ThemeToggle() {
@@ -27,7 +28,7 @@ export function ThemeToggle() {
   return (
     <form method="post" action={setThemeServerFn.url} onSubmit={handleSubmit}>
       <fieldset
-        aria-label="Color theme"
+        aria-label={m.theme_aria_label()}
         className="inline-flex gap-1 rounded-lg border border-border bg-card p-1"
       >
         {THEMES.map((option) => (
@@ -39,7 +40,7 @@ export function ThemeToggle() {
             aria-pressed={theme === option}
             className="cursor-pointer rounded-md px-3 py-1 text-sm text-muted-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-primary aria-pressed:text-primary-foreground"
           >
-            {LABELS[option]}
+            {LABELS[option]()}
           </button>
         ))}
       </fieldset>
