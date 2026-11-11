@@ -30,7 +30,7 @@
     "@tanstack/router-plugin": "^1.168.40",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
